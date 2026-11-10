@@ -12,19 +12,79 @@ Built with the skills in
 
 ## Run it
 
+### First time? Step by step
+
+You need two free programs, installed once:
+
+1. **Node.js** runs the game server. Download the **LTS** version from <https://nodejs.org>
+   and install it with the default options.
+2. **Git** downloads the game. Get it from <https://git-scm.com/downloads> and install it with
+   the default options. (No Git? On the GitHub page click **Code → Download ZIP**, unzip it,
+   and skip step 4 below.)
+
+Then:
+
+3. Open a terminal: on **Windows** press the Start key, type `PowerShell`, press Enter; on a
+   **Mac** press Cmd+Space, type `Terminal`, press Enter.
+4. Download the game (copy each line, paste it into the terminal, press Enter):
+
+   ```bash
+   git clone https://github.com/SnyperWolfe/emberdeep.git
+   ```
+
+5. Go into the game folder:
+
+   ```bash
+   cd emberdeep
+   ```
+
+6. Install what the game needs (only the first time, takes a minute):
+
+   ```bash
+   npm install
+   ```
+
+7. Start the server:
+
+   ```bash
+   npm start
+   ```
+
+   When it says `Emberdeep running at http://localhost:8080`, leave this window open.
+8. Open your web browser (Chrome, Edge, Firefox or Safari) and go to <http://localhost:8080>.
+9. Type a character name and a password, pick a class, and click **Enter the world**. Next time,
+   use the same name and password to continue.
+
+To stop the server, click the terminal window and press **Ctrl+C**. To play again later,
+open a terminal and run `cd emberdeep` and then `npm start`.
+
+**Playing with friends on the same Wi-Fi:** keep the server running, find your computer's
+local IP address (Windows: run `ipconfig` and look for *IPv4 Address*; Mac: System Settings →
+Wi-Fi → Details), and have friends open `http://YOUR-IP:8080`, for example
+`http://192.168.1.20:8080`. If your computer asks whether to allow Node.js on the network,
+choose **Allow**.
+
+**If something goes wrong:**
+
+- `npm` or `git` is "not recognized" / "command not found": close the terminal, open a new
+  one, and try again. If it still fails, reinstall Node.js or Git.
+- "Port 8080 is already in use" (`EADDRINUSE`): something else uses that port. Start on
+  another one; on Mac run `PORT=3000 npm start`, on Windows PowerShell run
+  `$env:PORT=3000; npm start`, then open <http://localhost:3000>.
+- A black screen in the browser: the game needs WebGL. Update your browser, or turn on
+  "Use graphics acceleration" in the browser's settings.
+
+### Already set up
+
 ```bash
-git clone https://github.com/SnyperWolfe/emberdeep.git
-cd emberdeep
 npm install
 npm start
 ```
 
 Open <http://localhost:8080>. Every character model, animated, is on
 <http://localhost:8080/gallery.html> (add `?state=move`, `attack`, `hit` or `death` to see
-other animations). It needs a browser with WebGL. Pick a name, a password and a class; a new name creates a
-character, an existing name logs in. Open a second tab (or have a friend connect to your
-machine) to play together. `PORT` and `EMBERDEEP_DATA` (save directory, default `./data`)
-are configurable.
+other animations). `PORT` and `EMBERDEEP_DATA` (save directory, default `./data`) are
+configurable. Run the tests with:
 
 ```bash
 npm test
