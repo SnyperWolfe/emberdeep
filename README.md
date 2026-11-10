@@ -1,9 +1,10 @@
 # Emberdeep
 
 A small browser MMORPG: a shared open world to level up in, and instanced dungeons where the
-best gear is. Phaser 4 client, authoritative Node.js WebSocket server, no art or audio files:
-every sprite is drawn in code at 2x resolution with cel shading and a 4-frame walk/idle cycle,
-and sounds are synthesised at runtime.
+best gear is. A three.js 3D client with animated low-poly characters and monsters by
+[Quaternius](https://quaternius.com) (CC0), and an authoritative Node.js WebSocket server.
+Terrain, trees, dungeons and effects are generated in code, and sounds are synthesised at
+runtime.
 
 Built with the skills in
 [awesome-gamedev-agent-skills](https://github.com/SnyperWolfe/awesome-gamedev-agent-skills)
@@ -17,8 +18,9 @@ npm install
 npm start
 ```
 
-Open <http://localhost:8080>. Every character sprite, animated, is on
-<http://localhost:8080/sprites.html> (add `?walk` to see the walk cycle). Pick a name, a password and a class; a new name creates a
+Open <http://localhost:8080>. Every character model, animated, is on
+<http://localhost:8080/gallery.html> (add `?state=move`, `attack`, `hit` or `death` to see
+other animations). It needs a browser with WebGL. Pick a name, a password and a class; a new name creates a
 character, an existing name logs in. Open a second tab (or have a friend connect to your
 machine) to play together. `PORT` and `EMBERDEEP_DATA` (save directory, default `./data`)
 are configurable.
@@ -35,6 +37,7 @@ npm test
 | Mouse, left click / `Space` | Aim, attack (hold to keep attacking) |
 | `1`, `2` | Class skills (unlock at levels 3 and 6) |
 | `Q`, `R` | Health / mana potion |
+| Mouse wheel | Zoom |
 | `E` | Talk to NPCs, enter and leave dungeons |
 | `I` | Bag, equipment and stats |
 | `Enter` | Chat; `/invite <name>`, `/accept`, `/leave`, `/p <msg>`, `/who` |
@@ -87,10 +90,13 @@ server/
   index.js    static files + WebSocket gateway (validation, rate limit, accounts)
   save.js     versioned JSON saves, atomic writes, .bak fallback, migrations
 client/
-  scene.js    Phaser scene: tilemap, entity interpolation, movement prediction, feedback
+  world3d.js  three.js view: camera, animated characters, movement prediction, overlay labels
+  models.js   which model each class/NPC/enemy uses, tint, size, weapon, animation states
+  terrain.js  low-poly ground, instanced trees/rocks/walls, town props, portals (chunked)
+  fx.js       swings, rings, telegraphs, bursts, level-up pillars
   ui.js       DOM HUD: bars, action bar, bag, quests, shop, chat, minimap
-  art.js      procedural tiles and sprites (visual rules documented at the top)
-  sprites.html  animated contact sheet of every sprite     sfx.js  synthesised sounds
+  assets/     Quaternius models (.glb) and CREDITS.md     sfx.js  synthesised sounds
+  gallery.html  every model animated, for checking art changes
 ```
 
 - **Server authority.** Clients send intent only (move direction, attack angle, "buy X").
@@ -100,6 +106,9 @@ client/
 - **Persistence.** One JSON file per character with a schema version, written to a temp file,
   fsynced and renamed, keeping the previous save as `.bak`. Passwords are stored as scrypt
   hashes.
+- **Art.** Characters are skinned glTF models cloned per entity with their own animation
+  mixer (idle, run, attack, hit, death). Trees, rocks and walls are instanced and split into
+  16x16-tile chunks so off-screen ones are culled.
 - **Content is data.** Adding an enemy, item tier, quest or dungeon is an edit to
   `shared/content.js`.
 
@@ -117,7 +126,8 @@ engine, then:
 | `level-design` | Difficulty rings, teach-then-test quest chain, quiet clearings at dungeon doors, harder rooms deeper in |
 | `game-feel` | Damage numbers, squash on hit, decaying camera trauma, tiered feedback (hit / crit / boss slam / boss kill) |
 | `game-ui-ux` | Anchored flex HUD, event-driven updates, focusable panels, safe-area padding |
-| `create-game-assets` | One written visual system (light direction, three-tone shading, tinted outlines, proportions), sprites built as families from shared archetypes, checked on a contact sheet and in game |
+| `create-game-assets` | One art family (Quaternius low-poly, CC0) with recorded provenance in `client/assets/CREDITS.md`; procedural terrain built to match its faceted look; every model checked in a gallery and in game |
+| `threejs-scene-setup`, `threejs-gltf-loading`, `threejs-materials-lighting` | Renderer, camera and lights; glTF + meshopt loading with skinned clones per entity; flat-shaded materials, shadows and dungeon torchlight |
 | `camera-systems` | Smoothed follow clamped to the map, shake applied to the camera only |
 | `ebitengine-game` networking reference | Authoritative server model, per-player authorised views, input validation, two-real-peer tests |
 

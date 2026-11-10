@@ -10,9 +10,10 @@ import { Game } from './game.js';
 import { SaveStore, hashPassword, checkPassword } from './save.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.glb': 'model/gltf-binary', '.md': 'text/markdown; charset=utf-8' };
 const STATIC = [
-  ['/vendor/phaser.js', path.join(ROOT, 'node_modules/phaser/dist/phaser.esm.min.js')],
+  ['/vendor/three/build/', path.join(ROOT, 'node_modules/three/build') + path.sep],
+  ['/vendor/three/examples/jsm/', path.join(ROOT, 'node_modules/three/examples/jsm') + path.sep],
   ['/shared/', path.join(ROOT, 'shared') + path.sep],
   ['/', path.join(ROOT, 'client') + path.sep],
 ];
@@ -37,7 +38,7 @@ export function startServer({ port = 8080, dataDir = path.join(ROOT, 'data'), se
     let file = null;
     try { file = resolveStatic(decodeURIComponent(new URL(req.url, 'http://x').pathname)); } catch { /* bad URL */ }
     if (!file || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404).end('Not found'); return; }
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': file.includes(`${path.sep}node_modules${path.sep}`) || file.endsWith('.glb') ? 'public, max-age=86400' : 'no-cache' });
     fs.createReadStream(file).pipe(res);
   });
 

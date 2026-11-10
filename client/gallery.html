@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emberdeep Models</title>
+  <script type="importmap">{ "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/examples/jsm/" } }</script>
+  <style>html, body { margin: 0; height: 100%; background: #14161c; overflow: hidden; font: 12px system-ui; color: #fff; } #labels div { position: absolute; transform: translate(-50%, 0); text-shadow: 0 1px 3px #000; white-space: nowrap; }</style>
+</head>
+<body>
+  <div id="labels"></div>
+  <script type="module">
+    // Every character model, animated, on a lit ground plane: a contact sheet for checking
+    // scale, tint, weapon grip and animation. ?state=attack|move|death|hit picks the clip.
+    import * as THREE from 'three';
+    import { makeActor, loadModels, CLASS_MODELS, NPC_MODELS, MOB_MODELS } from '/models.js';
+    import { ENEMIES } from '/shared/content.js';
+    const q = new URLSearchParams(location.search), state = q.get('state') || 'idle', yaw = +(q.get('yaw') ?? 0.6);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.setSize(innerWidth, innerHeight);
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.prepend(renderer.domElement);
+    const scene = new THREE.Scene(); scene.background = new THREE.Color(0x14161c);
+    scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x3a3020, 1.4));
+    const sun = new THREE.DirectionalLight(0xfff1dc, 2.2); sun.position.set(-8, 14, 6); sun.castShadow = true;
+    Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20 }); sun.shadow.mapSize.set(2048, 2048); scene.add(sun);
+    const rows = [
+      ['Classes & NPCs', [...Object.entries(CLASS_MODELS), ...Object.entries(NPC_MODELS)]],
+      ['Open world', ['slime', 'boar', 'bandit', 'wolf', 'spider', 'thornling', 'imp', 'hound', 'golem', 'wisp', 'stalker', 'brute'].map((k) => [k, MOB_MODELS[k]])],
+      ['Dungeons', ['skeleton', 'ghoul', 'bonearcher', 'regent', 'crawler', 'magmaimp', 'slag', 'magmaw', 'revenant', 'rimecaster', 'frostknight', 'vael'].map((k) => [k, MOB_MODELS[k]])],
+    ];
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), new THREE.MeshStandardMaterial({ color: 0x4f8f3a, roughness: 1 }));
+    ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+    const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 200);
+    ground.position.x = 16.5; ground.position.z = 4.6;
+    if (q.has('close')) { const cx = +(q.get('cx') ?? 6); camera.position.set(cx, 3.2, 8.5); camera.lookAt(cx, 0.8, 0); } else { camera.position.set(16.5, 30, 47); camera.lookAt(16.5, 0, 4.6); }
+    const actors = [], labels = [];
+    await loadModels();
+    for (let r = 0; r < rows.length; r++) {
+      const [, list] = rows[r];
+      for (let i = 0; i < list.length; i++) {
+        const [id, def] = list[i];
+        const a = makeActor(def);
+        a.root.position.set(i * 3, 0, r * 4.6);
+        a.face(yaw);
+        scene.add(a.root);
+        if (state === 'move') a.setMoving(true);
+        actors.push(a);
+        const el = document.createElement('div'); el.textContent = ENEMIES[id]?.name || id; document.getElementById('labels').append(el);
+        labels.push([el, a]);
+      }
+    }
+    const clock = new THREE.Clock();
+    let t = 0;
+    renderer.setAnimationLoop(() => {
+      const dt = clock.getDelta(); t += dt;
+      if (state !== 'idle' && state !== 'move' && t > 0.35) { t = -1.2; for (const a of actors) { a.dead = false; a.play(state); } }
+      for (const a of actors) a.update(dt, performance.now());
+      renderer.render(scene, camera);
+      for (const [el, a] of labels) { const v = a.root.position.clone().project(camera); el.style.left = `${(v.x + 1) / 2 * innerWidth}px`; el.style.top = `${(1 - v.y) / 2 * innerHeight + 6}px`; }
+      window.READY = true;
+    });
+  </script>
+</body>
+</html>

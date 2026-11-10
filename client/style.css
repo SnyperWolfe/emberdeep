@@ -1,7 +1,10 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #0d0f14; color: #e8e6e1; font: 14px/1.35 system-ui, -apple-system, "Segoe UI", sans-serif; }
 #game { position: fixed; inset: 0; }
-#game canvas { display: block; }
+#game canvas { display: block; position: absolute; inset: 0; }
+#game .overlay { pointer-events: none; }
+#game.fade { animation: fadein .45s ease-out; }
+@keyframes fadein { from { filter: brightness(0); } to { filter: none; } }
 #vignette { position: fixed; inset: 0; pointer-events: none; transition: opacity .6s; opacity: 0; background: radial-gradient(ellipse at center, transparent 35%, rgba(0, 0, 0, .88) 100%); }
 body.dungeon #vignette { opacity: 1; }
 button, input { font: inherit; color: inherit; }

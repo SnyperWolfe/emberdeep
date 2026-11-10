@@ -1,13 +1,15 @@
-// Boot: login screen -> connect -> start Phaser and the HUD once the server accepts us.
-import Phaser from '/vendor/phaser.js';
+// Boot: start fetching models, login screen -> connect -> start the 3D world and the HUD
+// once the server accepts us and the models are ready.
 import { CLASSES } from '/shared/content.js';
 import { state, bus, connect } from './net.js';
 import { initAudio } from './sfx.js';
 import { initUI } from './ui.js';
-import WorldScene from './scene.js';
+import { World } from './world3d.js';
+import { loadModels } from './models.js';
 
 const $ = (id) => document.getElementById(id);
-let game = null, started = false;
+let started = false, modelsLoaded = 0;
+const models = loadModels(undefined, (n, total) => { modelsLoaded = n / total; });
 
 $('classes').replaceChildren(...Object.entries(CLASSES).map(([id, c], i) => {
   const label = document.createElement('label'), radio = document.createElement('input'), b = document.createElement('b'), span = document.createElement('span');
@@ -36,19 +38,17 @@ bus.on('closed', (wasPlaying) => {
 });
 bus.on('kick', (m) => { $('lostmsg').textContent = m.msg; });
 
-bus.on('you', () => {
+bus.on('you', async () => {
   if (started) return;
   started = true;
+  const timer = setInterval(() => { $('loginmsg').textContent = `Loading models… ${Math.round(modelsLoaded * 100)}%`; }, 100);
+  try { await models; } catch (err) { clearInterval(timer); $('loginmsg').textContent = 'Could not load the game models. Reload the page.'; console.error(err); return; }
+  clearInterval(timer);
   $('login').hidden = true;
   $('hud').hidden = false;
   document.activeElement?.blur();
   initUI();
   bus.emit('you', state.you); // the HUD subscribed after this event started; replay it once
-  game = new Phaser.Game({
-    type: Phaser.AUTO, parent: 'game', backgroundColor: '#0d0f14',
-    scale: { mode: Phaser.Scale.RESIZE, width: window.innerWidth, height: window.innerHeight },
-    render: { antialias: true, roundPixels: true },
-    scene: [WorldScene],
-  });
+  new World($('game'));
   if (state.you.level === 1 && state.you.xp === 0) document.getElementById('btn-help').click();
 });

@@ -3,7 +3,7 @@ import { CLASSES, ITEMS, QUESTS, RARITY, SHOP, SLOTS, DUNGEONS, NPCS, MAX_LEVEL 
 import { derive, questStatus } from '/shared/rules.js';
 import { state, bus, send } from './net.js';
 import { sfx, toggleMute } from './sfx.js';
-import { MINIMAP } from './art.js';
+import { MINIMAP } from './palette.js';
 
 const $ = (id) => document.getElementById(id);
 /** Element builder that only ever sets text (never HTML), so names and chat cannot inject markup. */
