@@ -1,0 +1,16 @@
+{
+  "name": "emberdeep",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Emberdeep - a small browser MMORPG with an open world and instanced dungeons",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "phaser": "4.2.1",
+    "ws": "8.22.2"
+  }
+}

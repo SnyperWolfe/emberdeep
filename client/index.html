@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emberdeep</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game"></div>
+  <div id="vignette"></div>
+
+  <form id="login" class="screen" autocomplete="off">
+    <h1>Emberdeep</h1>
+    <p class="sub">An open world to grow strong in. Dungeons to prove it.</p>
+    <label>Character name <input id="name" maxlength="14" required autofocus></label>
+    <label>Password <input id="pass" type="password" minlength="4" maxlength="64" required></label>
+    <fieldset>
+      <legend>Class (new characters only)</legend>
+      <div id="classes"></div>
+    </fieldset>
+    <button type="submit">Enter the world</button>
+    <p id="loginmsg" role="alert"></p>
+    <p class="fine">New names create a character. Existing names log in.</p>
+  </form>
+
+  <div id="hud" hidden>
+    <div id="frame" class="box">
+      <div id="who"></div>
+      <div class="bar hp"><i id="hpfill"></i><span id="hptext"></span></div>
+      <div class="bar mp"><i id="mpfill"></i><span id="mptext"></span></div>
+      <div id="gold"></div>
+      <div id="party"></div>
+    </div>
+    <div id="boss" class="box" hidden><div id="bossname"></div><div class="bar hp"><i id="bossfill"></i></div></div>
+    <div id="topright">
+      <div id="zone" class="box"></div>
+      <canvas id="minimap" class="box"></canvas>
+      <div id="tracker" class="box"></div>
+    </div>
+    <div id="chat">
+      <div id="chatlog" class="box"></div>
+      <input id="chatinput" maxlength="200" placeholder="Enter: chat   /invite name   /who">
+    </div>
+    <div id="bottom">
+      <div id="hint" hidden></div>
+      <div id="actions"></div>
+      <div class="bar xp"><i id="xpfill"></i><span id="xptext"></span></div>
+      <div id="menu">
+        <button id="btn-bag" title="Inventory (I)">Bag (I)</button>
+        <button id="btn-help" title="Help (H)">Help (H)</button>
+        <button id="btn-mute" title="Mute (M)">Sound: on</button>
+      </div>
+    </div>
+    <div id="toasts"></div>
+    <div id="panel-bag" class="panel box" hidden></div>
+    <div id="panel-npc" class="panel box" hidden></div>
+    <div id="panel-help" class="panel box" hidden></div>
+    <div id="tooltip" class="box" hidden></div>
+    <div id="dead" hidden>You died<small>Returning shortly…</small></div>
+  </div>
+  <div id="lost" class="screen" hidden><h1>Disconnected</h1><p id="lostmsg"></p><button onclick="location.reload()">Reconnect</button></div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
