@@ -83,9 +83,9 @@ export default class WorldScene extends Phaser.Scene {
       ground.push(g); objects.push(o);
     }
     this.layers = [ground, objects].map((data, i) => {
-      const map = this.make.tilemap({ data, tileWidth: TS, tileHeight: TS });
-      const layer = map.createLayer(0, map.addTilesetImage('tiles', 'tiles', TS, TS, 1, 2), 0, 0);
-      layer.setDepth(i);
+      const tt = art.TEX_TS, map = this.make.tilemap({ data, tileWidth: tt, tileHeight: tt });
+      const layer = map.createLayer(0, map.addTilesetImage('tiles', 'tiles', tt, tt, 1, 2), 0, 0);
+      layer.setScale(TS / tt).setDepth(i);
       return layer;
     });
     this.pos.x = m.x; this.pos.y = m.y;
@@ -97,7 +97,7 @@ export default class WorldScene extends Phaser.Scene {
 
   // ---- entities --------------------------------------------------------------------------
   makeEntity(v, self = false) {
-    const c = this.add.container(v.x * TS, v.y * TS), e = { v, c, self, fromX: v.x, fromY: v.y, x: v.x, y: v.y, t0: 0, hp: -1 };
+    const c = this.add.container(v.x * TS, v.y * TS), e = { v, c, self, fromX: v.x, fromY: v.y, x: v.x, y: v.y, t0: 0, hp: -1, phase: Math.random() * 1000, movingUntil: 0, frame: 0 };
     if (v.k === 'j') {
       c.add(this.add.image(0, 0, 'dot').setTint(v.c || 0xffffff).setScale(1.6, 0.9).setRotation(v.a));
       c.add(this.add.image(0, 0, 'dot').setScale(0.7, 0.45).setRotation(v.a));
@@ -107,11 +107,13 @@ export default class WorldScene extends Phaser.Scene {
       c.add([e.img, this.add.text(0, -52, v.lv ? `${v.n}\nLevel ${v.lv}+` : v.n, { ...FONT, align: 'center', color: v.ex ? '#9dffb8' : '#e0c4ff' }).setOrigin(0.5)]);
     } else {
       const z = v.z || 1;
-      const key = v.k === 'p' ? art.playerTexture(this, v.c, CLASSES[v.c].color) : v.k === 'n' ? art.npcTexture(this, v.c) : art.mobTexture(this, v.s, v.c);
-      e.img = this.add.image(0, 0, key).setOrigin(0.5, 0.85).setScale(0.75 * z);
+      const key = v.k === 'p' ? art.playerTexture(this, v.c) : v.k === 'n' ? art.npcTexture(this, v.r) : art.mobTexture(this, v.t, v.s, v.c);
+      e.img = this.add.image(0, 0, key, 0).setOrigin(0.5, 0.85).setScale(art.SPRITE_SCALE * z);
+      e.anim = true;
+      if (v.b) { e.aura = this.add.image(0, -14 * z, 'dot').setTint(v.c).setAlpha(0.18).setScale(7 * z, 4 * z); c.add(e.aura); }
       c.add(e.img);
-      if (v.k === 'p') { e.weapon = this.add.image(0, -10, art.weaponTexture(this, v.c)).setOrigin(-0.35, 0.5); c.add(e.weapon); }
-      const top = -46 * z - 4;
+      if (v.k === 'p') { e.weapon = this.add.image(0, -12, art.weaponTexture(this, v.c)).setOrigin(-0.3, 0.5).setScale(0.5); c.add(e.weapon); }
+      const top = -54 * z - 4;
       const color = v.k === 'n' ? '#ffe9a0' : v.k === 'p' ? (self ? '#ffffff' : '#9fd0ff') : v.b ? '#ff9a2e' : v.el ? '#ffd27a' : '#f0f0f0';
       e.label = this.add.text(0, top - 9, v.k === 'm' ? `${v.n} · Lv ${v.l}` : v.n, { ...FONT, color, fontSize: v.b ? '14px' : '12px' }).setOrigin(0.5);
       c.add(e.label);
@@ -194,13 +196,19 @@ export default class WorldScene extends Phaser.Scene {
     }
 
     for (const e of this.ents.values()) {
-      if (e.self) { e.x = this.pos.x; e.y = this.pos.y; e.weapon.setRotation(this.aim); e.img.setFlipX(Math.abs(this.aim) > Math.PI / 2); }
+      if (e.self) { e.x = this.pos.x; e.y = this.pos.y; e.weapon.setRotation(this.aim); e.img.setFlipX(Math.abs(this.aim) > Math.PI / 2); if (dx || dy) e.movingUntil = now + 80; }
       else if (e.v.k === 'j') { const t = (now - e.t0) / 1000; e.x = e.v.x + e.v.vx * t; e.y = e.v.y + e.v.vy * t; }
       else {
         const a = Math.min(1, (now - e.t0) / INTERP_MS);
         const nx = lerp(e.fromX, e.v.x, a);
-        if (e.img && e.v.k !== 'o' && Math.abs(nx - e.x) > 0.002) e.img.setFlipX(nx < e.x);
-        e.x = nx; e.y = lerp(e.fromY, e.v.y, a);
+        const ny = lerp(e.fromY, e.v.y, a);
+        if (e.anim && Math.abs(nx - e.x) > 0.002) e.img.setFlipX(nx < e.x);
+        if (e.anim && Math.hypot(nx - e.x, ny - e.y) > 0.4 * dt) e.movingUntil = now + 150;
+        e.x = nx; e.y = ny;
+      }
+      if (e.anim) { // walk cycle while moving, slow breathing while idle
+        const f = now < e.movingUntil ? [2, 0, 3, 0][Math.floor(now / 105) % 4] : Math.floor((now + e.phase) / 560) % 2;
+        if (f !== e.frame) { e.frame = f; e.img.setFrame(f); }
       }
       e.c.setPosition(e.x * TS, e.y * TS);
       e.c.setDepth(e.v.k === 'j' ? 90000 : 10 + e.y);
@@ -251,6 +259,12 @@ export default class WorldScene extends Phaser.Scene {
     this.tweens.add({ targets: e.img, scaleX: bx, scaleY: by, duration: 180, ease: 'Back.easeOut', onComplete: () => { e.popping = false; } });
   }
 
+  flash(e) { // white hit flash, restored on a short timer
+    if (!e?.img?.active) return;
+    e.img.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
+    this.time.delayedCall(70, () => { if (e.img.active) e.img.clearTint().setTintMode(Phaser.TintModes.MULTIPLY); });
+  }
+
   onEvent(ev) {
     const mine = ev.id === this.me.v.id, e = this.ents.get(ev.id);
     switch (ev.t) {
@@ -265,6 +279,7 @@ export default class WorldScene extends Phaser.Scene {
           if (ev.crit) this.trauma = Math.min(1, this.trauma + 0.12);
         }
         this.pop(e);
+        this.flash(e);
         break;
       case 'swing': {
         const g = this.add.graphics({ x: ev.x * TS, y: ev.y * TS - 10 }).setDepth(93000);

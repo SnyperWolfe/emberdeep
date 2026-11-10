@@ -580,7 +580,7 @@ export class Game {
   // ---- replication: each client only receives what is near it ------------------------------
   view(e) {
     const base = { id: e.id, k: e.k, x: r2(e.x), y: r2(e.y) };
-    if (e.k === 'm') return { ...base, s: e.def.shape, c: e.def.color, n: e.def.name, l: e.level, hp: Math.max(0, Math.round(e.hp)), mh: e.maxHp, z: e.def.size, b: e.def.boss ? 1 : 0, el: e.def.elite ? 1 : 0, cast: e.casting ? 1 : 0 };
+    if (e.k === 'm') return { ...base, t: e.mob, s: e.def.shape, c: e.def.color, n: e.def.name, l: e.level, hp: Math.max(0, Math.round(e.hp)), mh: e.maxHp, z: e.def.size, b: e.def.boss ? 1 : 0, el: e.def.elite ? 1 : 0, cast: e.casting ? 1 : 0 };
     if (e.k === 'p') return { ...base, n: e.name, l: e.ch.level, c: e.ch.cls, hp: Math.round(e.hp), mh: e.stats.maxHp, d: e.dead ? 1 : 0, f: r2(e.facing) };
     if (e.k === 'j') return { ...base, c: e.c, a: e.a, vx: r2(e.vx), vy: r2(e.vy) };
     if (e.k === 'o') return { ...base, n: e.n, lv: e.lv || 0, ex: e.exit ? 1 : 0 };

@@ -1,8 +1,9 @@
 # Emberdeep
 
 A small browser MMORPG: a shared open world to level up in, and instanced dungeons where the
-best gear is. Phaser 4 client, authoritative Node.js WebSocket server, no art or audio files
-(everything is drawn and synthesised at runtime).
+best gear is. Phaser 4 client, authoritative Node.js WebSocket server, no art or audio files:
+every sprite is drawn in code at 2x resolution with cel shading and a 4-frame walk/idle cycle,
+and sounds are synthesised at runtime.
 
 Built with the skills in
 [awesome-gamedev-agent-skills](https://github.com/SnyperWolfe/awesome-gamedev-agent-skills)
@@ -16,7 +17,8 @@ npm install
 npm start
 ```
 
-Open <http://localhost:8080>. Pick a name, a password and a class; a new name creates a
+Open <http://localhost:8080>. Every character sprite, animated, is on
+<http://localhost:8080/sprites.html> (add `?walk` to see the walk cycle). Pick a name, a password and a class; a new name creates a
 character, an existing name logs in. Open a second tab (or have a friend connect to your
 machine) to play together. `PORT` and `EMBERDEEP_DATA` (save directory, default `./data`)
 are configurable.
@@ -87,7 +89,8 @@ server/
 client/
   scene.js    Phaser scene: tilemap, entity interpolation, movement prediction, feedback
   ui.js       DOM HUD: bars, action bar, bag, quests, shop, chat, minimap
-  art.js      procedural tiles and sprites     sfx.js  synthesised sounds
+  art.js      procedural tiles and sprites (visual rules documented at the top)
+  sprites.html  animated contact sheet of every sprite     sfx.js  synthesised sounds
 ```
 
 - **Server authority.** Clients send intent only (move direction, attack angle, "buy X").
@@ -114,6 +117,7 @@ engine, then:
 | `level-design` | Difficulty rings, teach-then-test quest chain, quiet clearings at dungeon doors, harder rooms deeper in |
 | `game-feel` | Damage numbers, squash on hit, decaying camera trauma, tiered feedback (hit / crit / boss slam / boss kill) |
 | `game-ui-ux` | Anchored flex HUD, event-driven updates, focusable panels, safe-area padding |
+| `create-game-assets` | One written visual system (light direction, three-tone shading, tinted outlines, proportions), sprites built as families from shared archetypes, checked on a contact sheet and in game |
 | `camera-systems` | Smoothed follow clamped to the map, shake applied to the camera only |
 | `ebitengine-game` networking reference | Authoritative server model, per-player authorised views, input validation, two-real-peer tests |
 
