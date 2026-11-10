@@ -13,7 +13,8 @@ Built with the skills in
 ## Run it
 
 ```bash
-cd games/emberdeep
+git clone https://github.com/SnyperWolfe/emberdeep.git
+cd emberdeep
 npm install
 npm start
 ```
