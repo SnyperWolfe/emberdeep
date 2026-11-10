@@ -114,8 +114,8 @@ client/
 
 ## Skills used
 
-Routed with the repo's `router` skill: new web project, so `phaser-core` (Phaser 4.2) for the
-engine, then:
+Routed with the repo's `router` skill: a web project, first built on `phaser-core` (Phaser 4.2)
+and later moved to three.js (the `threejs-*` skills) for 3D models, then:
 
 | Skill | Where it shaped the game |
 | --- | --- |
