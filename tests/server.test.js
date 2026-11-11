@@ -189,3 +189,27 @@ test('network: two real clients log in, see each other, chat; bad input is rejec
   assert.ok((await until(a2, (m) => m.t === 'map')).x > x0 + 0.5, 'position was saved');
   await srv.close();
 });
+
+test('looks: chosen at creation, validated, migrated for old saves, changeable only at the wardrobe', async () => {
+  assert.deepEqual(R.normalizeLook([1, 9, -1, 'x'], 'ranger'), [1, 1, 1, 1, 1, 1, 1, 0], 'bad entries fall back to the class default');
+  assert.deepEqual(R.newCharacter('A', 'mage', [0, 1, 0, 1, 0, 1, 3, 2]).look, [0, 1, 0, 1, 0, 1, 3, 2]);
+
+  const dir = tmp(), store = new SaveStore(dir);
+  fs.writeFileSync(store.file('Oldie'), JSON.stringify({ version: 2, name: 'Oldie', cls: 'mage', level: 2, xp: 0, gold: 1, inv: [], equip: {}, quests: {}, pity: 0 }));
+  assert.deepEqual(store.load('Oldie').look, [1, 0, 0, 0, 0, 0, 2, 0], 'pre-look saves get their class look');
+
+  const game = new Game({ store: fakeStore, seed: 2 });
+  const p = join(game, 'Dresser', 'warrior');
+  game.setLook(p, [0, 1, 1, 1, 1, 1, 5, 1]);
+  assert.deepEqual(p.ch.look, [0, 0, 0, 0, 0, 0, 0, 0], 'refused away from the merchant');
+  p.x = 93.5; p.y = 69;
+  game.setLook(p, [0, 1, 1, 1, 1, 1, 5, 1]);
+  assert.deepEqual(p.ch.look, [0, 1, 1, 1, 1, 1, 5, 1]);
+  p.ch.equip.chest = 'd1e_chest';
+  const other = join(game, 'Watcher');
+  other.x = p.x + 1; other.y = p.y;
+  game.tick(0.05); game.tick(0.05);
+  const seen = other.msgs.filter((m) => m.t === 's').pop().e.find((e) => e.n === 'Dresser');
+  assert.deepEqual(seen.lk, [0, 1, 1, 1, 1, 1, 5, 1], 'others see the outfit');
+  assert.equal(seen.gr, 'c-e-', 'and the rarity of the worn gear');
+});

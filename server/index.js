@@ -62,7 +62,7 @@ export function startServer({ port = 8080, dataDir = path.join(ROOT, 'data'), se
         }
       } else {
         if (!CLASSES[m.cls]) return send({ t: 'error', msg: 'Choose a class to create a new character.' });
-        acc = newCharacter(name, m.cls);
+        acc = newCharacter(name, m.cls, m.look);
         acc.auth = await hashPassword(pass);
         store.save(acc);
       }
@@ -94,6 +94,7 @@ export function startServer({ port = 8080, dataDir = path.join(ROOT, 'data'), se
         case 'buy': return game.buy(player, String(m.id));
         case 'sell': return game.sell(player, m.slot, !!m.all);
         case 'quest': return game.quest(player, m.op, String(m.id));
+        case 'look': return game.setLook(player, m.look);
         case 'interact': return game.interact(player);
         case 'chat': return game.chat(player, m.text);
         case 'ping': return send({ t: 'pong', c: m.c });

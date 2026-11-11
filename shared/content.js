@@ -14,6 +14,27 @@ for (const id of [0, 1, 2, 3, 4, 5, 11, 13, 15]) WALK[id] = 1;
 export const isWalkable = (id) => WALK[id] === 1;
 
 export const SLOTS = ['weapon', 'helm', 'chest', 'boots', 'ring'];
+
+// ---- Character looks (modular outfits) -----------------------------------------------------
+// A look is [body, head, torso, legs, feet, pack, colors, skin]. Male bodies mix parts from two
+// outfits (index 0 = knight, 1 = traveler); the female body has one outfit. Equipped dungeon
+// gear additionally tints and lights up the part it covers (see client/models.js).
+export const LOOK = {
+  body: ['Male', 'Female'],
+  head: ['Crowned', 'Rugged'],
+  torso: ['Knight armor', 'Traveler shirt'],
+  legs: ['Plate legs', 'Trousers'],
+  feet: ['Iron boots', 'Leather boots'],
+  pack: ['None', 'Backpack'],
+  colors: ['Natural', 'Forest', 'Arcane', 'Crimson', 'Shadow', 'Royal'],
+  skin: ['Fair', 'Tan', 'Deep'],
+};
+export const LOOK_KEYS = ['body', 'head', 'torso', 'legs', 'feet', 'pack', 'colors', 'skin'];
+export const DEFAULT_LOOK = {
+  warrior: [0, 0, 0, 0, 0, 0, 0, 0],
+  ranger: [0, 1, 1, 1, 1, 1, 1, 0],
+  mage: [1, 0, 0, 0, 0, 0, 2, 0],
+};
 export const STATS = ['STR', 'AGI', 'INT', 'VIT'];
 
 export const CLASSES = {

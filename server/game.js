@@ -10,6 +10,8 @@ import { findPath } from '../shared/path.js';
 const VIEW_X = 20, VIEW_Y = 13;      // interest rectangle (tiles): what a client is told about
 const RESPAWN_MOB = 25, RESPAWN_PLAYER = 4, POTION_CD = 6;
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+/** Rarity of worn weapon/helm/chest/boots as 4 letters (c/u/r/e/l, '-' = empty), so others see gear. */
+export const gearCode = (equip) => ['weapon', 'helm', 'chest', 'boots'].map((s) => ITEMS[equip[s]]?.rarity[0] || '-').join('');
 const r2 = (v) => Math.round(v * 100) / 100;
 
 export class Game {
@@ -114,7 +116,7 @@ export class Game {
 
   sendYou(p) {
     const ch = p.ch;
-    p.send({ t: 'you', id: p.id, name: ch.name, cls: ch.cls, level: ch.level, xp: ch.xp, xpNext: R.xpToNext(ch.level), gold: ch.gold, inv: ch.inv, equip: ch.equip, quests: ch.quests, stats: p.stats });
+    p.send({ t: 'you', id: p.id, name: ch.name, cls: ch.cls, look: ch.look, level: ch.level, xp: ch.xp, xpNext: R.xpToNext(ch.level), gold: ch.gold, inv: ch.inv, equip: ch.equip, quests: ch.quests, stats: p.stats });
   }
 
   /** Call after anything that changes the character sheet. */
@@ -218,6 +220,14 @@ export class Game {
     R.removeAt(p.ch, slot | 0, n);
     p.ch.gold += Math.max(1, Math.floor(item.value * 0.3)) * n;
     this.sendYou(p);
+  }
+
+  /** Change outfit at the merchant's wardrobe in town. */
+  setLook(p, look) {
+    if (!this.nearNpc(p, 'shop')) return p.send({ t: 'note', text: 'Visit Odo in Emberhold to change your outfit.' });
+    p.ch.look = R.normalizeLook(look, p.ch.cls);
+    this.sendYou(p);
+    this.persist(p);
   }
 
   quest(p, op, id) {
@@ -581,7 +591,7 @@ export class Game {
   view(e) {
     const base = { id: e.id, k: e.k, x: r2(e.x), y: r2(e.y) };
     if (e.k === 'm') return { ...base, t: e.mob, s: e.def.shape, c: e.def.color, n: e.def.name, l: e.level, hp: Math.max(0, Math.round(e.hp)), mh: e.maxHp, z: e.def.size, b: e.def.boss ? 1 : 0, el: e.def.elite ? 1 : 0, cast: e.casting ? 1 : 0 };
-    if (e.k === 'p') return { ...base, n: e.name, l: e.ch.level, c: e.ch.cls, hp: Math.round(e.hp), mh: e.stats.maxHp, d: e.dead ? 1 : 0, f: r2(e.facing) };
+    if (e.k === 'p') return { ...base, n: e.name, l: e.ch.level, c: e.ch.cls, lk: e.ch.look, gr: gearCode(e.ch.equip), hp: Math.round(e.hp), mh: e.stats.maxHp, d: e.dead ? 1 : 0, f: r2(e.facing) };
     if (e.k === 'j') return { ...base, c: e.c, a: e.a, vx: r2(e.vx), vy: r2(e.vy) };
     if (e.k === 'o') return { ...base, n: e.n, lv: e.lv || 0, ex: e.exit ? 1 : 0 };
     return { ...base, n: e.n, c: e.c, r: e.r };

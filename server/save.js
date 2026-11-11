@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { promisify } from 'node:util';
-import { CLASSES, ITEMS, QUESTS, SLOTS, INV_SIZE, MAX_LEVEL } from '../shared/content.js';
-import { SAVE_VERSION } from '../shared/rules.js';
+import { CLASSES, ITEMS, QUESTS, SLOTS, INV_SIZE, MAX_LEVEL, DEFAULT_LOOK } from '../shared/content.js';
+import { SAVE_VERSION, normalizeLook } from '../shared/rules.js';
 
 const scrypt = promisify(crypto.scrypt);
 
@@ -16,6 +16,10 @@ const MIGRATIONS = {
   1: (d) => { // v1 had a 24-slot bag and no legendary pity counter
     d.pity = 0;
     d.inv = (d.inv || []).concat(new Array(INV_SIZE).fill(null)).slice(0, INV_SIZE);
+    return d;
+  },
+  2: (d) => { // v3 added character looks; older characters keep their class's original look
+    d.look = DEFAULT_LOOK[d.cls] || DEFAULT_LOOK.warrior;
     return d;
   },
 };
@@ -34,6 +38,7 @@ export function validate(d) {
   d.xp = Math.max(0, d.xp | 0);
   d.gold = Math.max(0, d.gold | 0);
   d.pity = Math.max(0, d.pity | 0);
+  d.look = normalizeLook(d.look, d.cls);
   const inv = Array.isArray(d.inv) ? d.inv : [];
   d.inv = Array.from({ length: INV_SIZE }, (_, i) => {
     const s = inv[i];

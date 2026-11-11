@@ -4,6 +4,7 @@ import { derive, questStatus } from '/shared/rules.js';
 import { state, bus, send } from './net.js';
 import { sfx, toggleMute } from './sfx.js';
 import { MINIMAP } from './palette.js';
+import { LookEditor } from './wardrobe.js';
 
 const $ = (id) => document.getElementById(id);
 /** Element builder that only ever sets text (never HTML), so names and chat cannot inject markup. */
@@ -120,7 +121,9 @@ function renderNpc() {
       h('div', { class: 'grow', tabIndex: 0, style: `color:${RARITY[item.rarity].color}`, ...tipProps(item.id, 'shop') }, item.name, item.kind === 'gear' ? h('span', { class: 'muted', textContent: `  ${item.slot}, level ${item.req}` }) : null),
       h('span', { style: 'color:#f0c95a', textContent: `${item.value}g` }),
       h('button', { textContent: 'Buy', disabled: you.gold < item.value, onclick: () => send({ t: 'buy', id: item.id }) })));
-    panel.replaceChildren(panelHead('Odo the Merchant', close), h('div', { class: 'muted', textContent: `You have ${you.gold} gold. Open your bag (I) and click items to sell them. The finest gear is never for sale — it is taken from dungeon bosses.` }), ...rows);
+    panel.replaceChildren(panelHead('Odo the Merchant', close),
+      h('div', { class: 'row' }, h('div', { class: 'grow muted', textContent: 'Mix and match outfit pieces, colours and skin tone — free of charge.' }), h('button', { textContent: 'Change outfit', onclick: openWardrobe })),
+      h('div', { class: 'muted', textContent: `You have ${you.gold} gold. Open your bag (I) and click items to sell them. The finest gear is never for sale — it is taken from dungeon bosses.` }), ...rows);
     return;
   }
   const rows = [];
@@ -157,6 +160,23 @@ function renderTracker() {
   }
   if (!kids.length && Object.keys(you.quests).length < QUESTS.length) kids.push(h('div', { class: 'muted', textContent: 'Talk to Captain Mara in town for work.' }));
   $('tracker').replaceChildren(...kids);
+}
+
+let wardrobe = null;
+function openWardrobe() {
+  const panel = $('panel-wardrobe');
+  if (!wardrobe) {
+    const body = h('div');
+    wardrobe = new LookEditor(body, { look: state.you.look, getCls: () => state.you.cls });
+    panel.replaceChildren(panelHead('Wardrobe', () => togglePanel('panel-wardrobe', false)), body,
+      h('div', { class: 'muted', textContent: 'Dungeon gear you wear also shows on your outfit: rare pieces tint it blue, epic purple and legendary gold.' }),
+      h('div', { class: 'row' }, h('span', { class: 'grow' }),
+        h('button', { textContent: 'Cancel', onclick: () => togglePanel('panel-wardrobe', false) }),
+        h('button', { textContent: 'Save outfit', onclick: () => { send({ t: 'look', look: wardrobe.look }); togglePanel('panel-wardrobe', false); } })));
+  }
+  wardrobe.setLook(state.you.look);
+  togglePanel('panel-npc', false); togglePanel('panel-bag', false);
+  togglePanel('panel-wardrobe', true);
 }
 
 function togglePanel(id, show) {
@@ -301,7 +321,7 @@ export function initUI() {
     else if (e.code === 'KeyI' || e.code === 'KeyB') togglePanel('panel-bag');
     else if (e.code === 'KeyH') togglePanel('panel-help');
     else if (e.code === 'KeyM') $('btn-mute').click();
-    else if (e.code === 'Escape') for (const id of ['panel-npc', 'panel-bag', 'panel-help']) togglePanel(id, false);
+    else if (e.code === 'Escape') for (const id of ['panel-npc', 'panel-bag', 'panel-help', 'panel-wardrobe']) togglePanel(id, false);
   });
   $('btn-bag').onclick = () => togglePanel('panel-bag');
   $('btn-help').onclick = () => togglePanel('panel-help');

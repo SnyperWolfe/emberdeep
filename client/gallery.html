@@ -13,7 +13,7 @@
     // Every character model, animated, on a lit ground plane: a contact sheet for checking
     // scale, tint, weapon grip and animation. ?state=attack|move|death|hit picks the clip.
     import * as THREE from 'three';
-    import { makeActor, loadModels, CLASS_MODELS, NPC_MODELS, MOB_MODELS } from '/models.js';
+    import { makeActor, loadModels, heroDef, CLASS_MODELS, NPC_MODELS, MOB_MODELS } from '/models.js';
     import { ENEMIES } from '/shared/content.js';
     const q = new URLSearchParams(location.search), state = q.get('state') || 'idle', yaw = +(q.get('yaw') ?? 0.6);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -25,7 +25,10 @@
     const sun = new THREE.DirectionalLight(0xfff1dc, 2.2); sun.position.set(-8, 14, 6); sun.castShadow = true;
     Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20 }); sun.shadow.mapSize.set(2048, 2048); scene.add(sun);
     const rows = [
-      ['Classes & NPCs', [...Object.entries(CLASS_MODELS), ...Object.entries(NPC_MODELS)]],
+      ['Classes & NPCs', [...Object.entries(CLASS_MODELS), ...Object.entries(NPC_MODELS),
+        ['knight/traveler', heroDef('warrior', [0, 0, 1, 0, 1, 1, 3, 1])], ['traveler/knight', heroDef('ranger', [0, 1, 0, 1, 0, 0, 4, 2])],
+        ['female royal', heroDef('mage', [1, 0, 0, 0, 0, 0, 5, 1])], ['rare gear', heroDef('warrior', [0, 0, 0, 0, 0, 0, 0, 0], 'rrrr')],
+        ['epic gear', heroDef('ranger', undefined, 'eeee')], ['legendary', heroDef('mage', undefined, 'llll')]]],
       ['Open world', ['slime', 'boar', 'bandit', 'wolf', 'spider', 'thornling', 'imp', 'hound', 'golem', 'wisp', 'stalker', 'brute'].map((k) => [k, MOB_MODELS[k]])],
       ['Dungeons', ['skeleton', 'ghoul', 'bonearcher', 'regent', 'crawler', 'magmaimp', 'slag', 'magmaw', 'revenant', 'rimecaster', 'frostknight', 'vael'].map((k) => [k, MOB_MODELS[k]])],
     ];
@@ -33,7 +36,7 @@
     ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
     const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 200);
     ground.position.x = 16.5; ground.position.z = 4.6;
-    if (q.has('close')) { const cx = +(q.get('cx') ?? 6); camera.position.set(cx, 3.2, 8.5); camera.lookAt(cx, 0.8, 0); } else { camera.position.set(16.5, 30, 47); camera.lookAt(16.5, 0, 4.6); }
+    if (q.has('close')) { const cx = +(q.get('cx') ?? 6), d = +(q.get('d') ?? 1); camera.position.set(cx, 3.2 * d, 8.5 * d); camera.lookAt(cx, 0.8, 0); } else { camera.position.set(16.5, 30, 47); camera.lookAt(16.5, 0, 4.6); }
     const actors = [], labels = [];
     await loadModels();
     for (let r = 0; r < rows.length; r++) {

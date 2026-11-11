@@ -138,6 +138,14 @@ levels later, so levelling and gearing up outside first is the intended way in. 
 
 **Classes.** Warrior (melee, tanky), Ranger (fast ranged, crits), Mage (area damage, slow).
 
+**Looks.** Characters are modular, in the spirit of Quaternius's modular outfit packs: when you
+create a character, pick a male or female body, then mix head, torso, legs and boots from a
+knight and a traveler outfit, add a backpack, and choose one of six colour schemes and three
+skin tones, with a live 3D preview. Change it any time for free at the **wardrobe** at Odo's
+stall in town. Dungeon gear shows on your outfit: rare pieces tint the part they cover blue,
+epic pieces purple and legendary pieces gold, and dungeon weapons glow, so other players can
+see what you have earned.
+
 ## How it is built
 
 ```
@@ -152,7 +160,8 @@ server/
   save.js     versioned JSON saves, atomic writes, .bak fallback, migrations
 client/
   world3d.js  three.js view: camera, animated characters, movement prediction, overlay labels
-  models.js   which model each class/NPC/enemy uses, tint, size, weapon, animation states
+  models.js   modular heroes (parts rebound to one skeleton), enemy/NPC models, animation states
+  wardrobe.js look editor with live preview (character creation and the in-town wardrobe)
   terrain.js  low-poly ground, instanced trees/rocks/walls, town props, portals (chunked)
   fx.js       swings, rings, telegraphs, bursts, level-up pillars
   ui.js       DOM HUD: bars, action bar, bag, quests, shop, chat, minimap

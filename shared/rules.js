@@ -1,11 +1,20 @@
 // Pure game rules shared by the server and the tests: stats, damage, XP, inventory, quests.
-import { CLASSES, ITEMS, QUESTS, SLOTS, INV_SIZE, MAX_LEVEL } from './content.js';
+import { CLASSES, ITEMS, QUESTS, SLOTS, INV_SIZE, MAX_LEVEL, LOOK, LOOK_KEYS, DEFAULT_LOOK } from './content.js';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
-export function newCharacter(name, cls) {
+/** Any input becomes a valid look; missing or out-of-range entries fall back to the class default. */
+export function normalizeLook(look, cls) {
+  const base = DEFAULT_LOOK[cls] || DEFAULT_LOOK.warrior;
+  return LOOK_KEYS.map((k, i) => {
+    const v = Array.isArray(look) ? look[i] : undefined;
+    return Number.isInteger(v) && v >= 0 && v < LOOK[k].length ? v : base[i];
+  });
+}
+
+export function newCharacter(name, cls, look) {
   const ch = {
-    version: SAVE_VERSION, name, cls, level: 1, xp: 0, gold: 20,
+    version: SAVE_VERSION, name, cls, look: normalizeLook(look, cls), level: 1, xp: 0, gold: 20,
     inv: new Array(INV_SIZE).fill(null),
     equip: { weapon: `c1_weapon_${cls}`, helm: null, chest: 'c1_chest', boots: null, ring: null },
     quests: {}, pos: null, pity: 0, created: Date.now(),

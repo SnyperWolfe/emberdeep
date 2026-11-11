@@ -1,11 +1,14 @@
 // The 3D world view: terrain, animated characters, predicted local movement, camera, effects,
 // and a 2D overlay for names, health bars and damage numbers.
 import * as THREE from 'three';
-import { CLASSES } from '/shared/content.js';
+import { CLASSES, ITEMS } from '/shared/content.js';
+
+/** Same encoding as the server's gearCode: rarity letter of weapon, helm, chest, boots. */
+const myGear = () => ['weapon', 'helm', 'chest', 'boots'].map((k) => ITEMS[state.you.equip[k]]?.rarity[0] || '-').join('');
 import { moveWithCollision } from '/shared/collide.js';
 import { state, bus, send } from './net.js';
 import { sfx } from './sfx.js';
-import { makeActor, CLASS_MODELS, NPC_MODELS, MOB_MODELS } from './models.js';
+import { makeActor, heroDef, NPC_MODELS, MOB_MODELS } from './models.js';
 import { buildMap, makePortal, DUNGEON_THEME } from './terrain.js';
 import { Effects } from './fx.js';
 
@@ -76,6 +79,7 @@ export class World {
     bus.on('map', () => this.loadMap());
     bus.on('s', (m) => this.onSnapshot(m));
     bus.on('respawn', (m) => { this.pos.x = m.x; this.pos.y = m.y; this.me?.actor.revive(); });
+    bus.on('you', () => { if (this.me) this.refreshLook(this.me, state.you.look, myGear()); });
     bus.on('key', (e) => this.onKey(e));
     if (state.map) this.loadMap();
     if (new URLSearchParams(location.search).has('debug')) window.__world = this; // test hook
@@ -113,7 +117,7 @@ export class World {
     this.torch.intensity = dungeon ? 40 : 0;
     if (dungeon) this.torch.color.setHex(theme.light);
     this.pos.x = m.x; this.pos.y = m.y;
-    this.me = this.makeEnt({ id: state.you.id, k: 'p', n: state.you.name, c: state.you.cls, l: state.you.level, hp: 1, mh: 1, x: m.x, y: m.y }, true);
+    this.me = this.makeEnt({ id: state.you.id, k: 'p', n: state.you.name, c: state.you.cls, lk: state.you.look, gr: myGear(), l: state.you.level, hp: 1, mh: 1, x: m.x, y: m.y }, true);
     this.camPos.set(m.x, 0, m.y);
     this.parent.classList.remove('fade'); void this.parent.offsetWidth; this.parent.classList.add('fade');
   }
@@ -122,7 +126,8 @@ export class World {
   makeEnt(v, self = false) {
     const e = { v, self, fromX: v.x, fromY: v.y, x: v.x, y: v.y, t0: 0, movingUntil: 0, face: Math.PI / 2, hp: v.hp, mh: v.mh };
     if (v.k === 'p' || v.k === 'n' || v.k === 'm') {
-      const def = v.k === 'p' ? CLASS_MODELS[v.c] : v.k === 'n' ? NPC_MODELS[v.r] : MOB_MODELS[v.t];
+      const def = v.k === 'p' ? heroDef(v.c, v.lk, v.gr) : v.k === 'n' ? NPC_MODELS[v.r] : MOB_MODELS[v.t];
+      e.lookKey = def.key;
       e.actor = makeActor(def || MOB_MODELS.slime);
       e.obj = e.actor.root;
       e.height = e.actor.height;
@@ -152,6 +157,21 @@ export class World {
     return e;
   }
 
+  /** Swap a player's model when their outfit or worn gear changed. */
+  refreshLook(e, look, gear) {
+    const def = heroDef(e.v.c, look, gear);
+    if (!look || def.key === e.lookKey) return;
+    const old = e.actor, dead = old.dead;
+    e.actor = makeActor(def);
+    e.lookKey = def.key;
+    e.obj.remove(old.pivot);
+    e.obj.add(e.actor.pivot);
+    e.actor.root = e.obj;
+    old.dispose();
+    if (dead) e.actor.die();
+    this.fx.rise(e.x, e.y, 0xffe9a0, 16, 2, 0.8);
+  }
+
   removeEnt(e) {
     this.scene.remove(e.obj);
     e.actor?.dispose();
@@ -168,7 +188,7 @@ export class World {
       e.fromX = e.x; e.fromY = e.y; e.t0 = now;
       e.v = v;
       e.hp = v.hp; e.mh = v.mh;
-      if (v.k === 'p' && e.actor) { if (v.d) e.actor.die(); else e.actor.revive(); }
+      if (v.k === 'p' && e.actor) { this.refreshLook(e, v.lk, v.gr); if (v.d) e.actor.die(); else e.actor.revive(); }
     }
     for (const ev of s.ev) this.onEvent(ev); // before removals, so deaths can animate
     for (const [id, e] of this.ents) {

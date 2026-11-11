@@ -15,7 +15,7 @@ input { background: #14171d; border: 1px solid #4a4f5a; border-radius: 4px; padd
 input:focus { outline: none; border-color: #e0bd6a; }
 .box { background: rgba(16, 18, 24, .86); border: 1px solid #4b4334; border-radius: 6px; }
 
-.screen { position: fixed; inset: 0; margin: auto; width: min(420px, calc(100vw - 24px)); height: fit-content; max-height: calc(100vh - 24px); overflow: auto; padding: 22px 26px; background: #171a21; border: 1px solid #6d5a35; border-radius: 10px; display: flex; flex-direction: column; gap: 12px; z-index: 20; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .6); }
+.screen { position: fixed; inset: 0; margin: auto; width: min(560px, calc(100vw - 24px)); height: fit-content; max-height: calc(100vh - 24px); overflow: auto; padding: 22px 26px; background: #171a21; border: 1px solid #6d5a35; border-radius: 10px; display: flex; flex-direction: column; gap: 12px; z-index: 20; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .6); }
 .screen[hidden] { display: none; }
 .screen h1 { margin: 0; font-size: 34px; letter-spacing: 2px; color: #f0b55a; text-align: center; }
 .sub { margin: -8px 0 4px; text-align: center; color: #a9a59b; }
@@ -108,3 +108,14 @@ fieldset { border: 1px solid #4b4334; border-radius: 6px; margin: 0; padding: 8p
 #tooltip[hidden] { display: none; }
 #tooltip b { font-size: 14px; } #tooltip .good { color: #6dff8f; } #tooltip .bad { color: #ff8a7a; }
 @media (max-width: 900px) { #chat { width: 30vw; } #chatlog { height: 90px; } #topright { width: 150px; } #panel-bag { right: 10px; max-width: calc(100vw - 20px); } #bottom { left: auto; right: 10px; transform: none; width: min(430px, 62vw); } .panel { max-height: calc(100vh - 24px); z-index: 5; } }
+
+/* Look editor (character creation and wardrobe) */
+.look-editor { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.look-preview { width: 220px; height: 270px; display: flex; align-items: center; justify-content: center; color: #8d8a82; background: radial-gradient(circle at 50% 60%, #2a2620, #14161c 70%); border-radius: 8px; }
+.look-rows { display: flex; flex-direction: column; gap: 4px; min-width: 220px; flex: 1; }
+.look-row { display: grid; grid-template-columns: 70px 30px 1fr 30px; align-items: center; gap: 4px; }
+.look-row[hidden] { display: none; }
+.look-row span { text-align: center; }
+.look-row button { padding: 2px 0; }
+.look-tools { grid-template-columns: 1fr 1fr; margin-top: 4px; }
+#panel-wardrobe { left: 50%; transform: translate(-50%, -50%); width: min(520px, calc(100vw - 24px)); }

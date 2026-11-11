@@ -1,6 +1,7 @@
 // Boot: start fetching models, login screen -> connect -> start the 3D world and the HUD
 // once the server accepts us and the models are ready.
-import { CLASSES } from '/shared/content.js';
+import { CLASSES, DEFAULT_LOOK } from '/shared/content.js';
+import { LookEditor } from './wardrobe.js';
 import { state, bus, connect } from './net.js';
 import { initAudio } from './sfx.js';
 import { initUI } from './ui.js';
@@ -20,6 +21,12 @@ $('classes').replaceChildren(...Object.entries(CLASSES).map(([id, c], i) => {
 }));
 try { $('name').value = localStorage.getItem('emberdeep.name') || ''; } catch { /* storage blocked */ }
 
+// Appearance picker: follows the chosen class until the player customises it.
+const pickedClass = () => document.querySelector('input[name=cls]:checked').value;
+let lookTouched = false;
+const editor = new LookEditor($('look'), { look: DEFAULT_LOOK[pickedClass()], getCls: pickedClass, onChange: () => { lookTouched = true; } });
+$('classes').addEventListener('change', () => (lookTouched ? editor.rebuild() : editor.setLook(DEFAULT_LOOK[pickedClass()])));
+
 $('login').addEventListener('submit', (e) => {
   e.preventDefault();
   if (state.connected) return;
@@ -27,7 +34,7 @@ $('login').addEventListener('submit', (e) => {
   const name = $('name').value.trim();
   $('loginmsg').textContent = 'Connecting…';
   try { localStorage.setItem('emberdeep.name', name); } catch { /* storage blocked */ }
-  connect({ name, pass: $('pass').value, cls: document.querySelector('input[name=cls]:checked').value });
+  connect({ name, pass: $('pass').value, cls: pickedClass(), look: editor.look });
 });
 
 bus.on('error', (m) => { $('loginmsg').textContent = m.msg; });
